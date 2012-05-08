@@ -53,14 +53,14 @@ socket="liblua5.1-socket2",  -- -- TCP/UDP socket library for Lua 5.1
 ltn12="liblua5.1-socket2",  -- -- TCP/UDP socket library for Lua 5.1    
 mime="liblua5.1-socket2",  -- -- TCP/UDP socket library for Lua 5.1  
 zip="liblua5.1-zip0",  -- -- zip library for the Lua language version 5.1        
+['luasql.sqlite3'] = "liblua5.1-sql-sqlite3-2" ,  -- luasql library for the Lua language version 5.1
+['luasql.postgres'] = " liblua5.1-sql-postgres-2",  -- luasql library for the Lua language version 5.1
+['luasql.mysql'] = "liblua5.1-sql-mysql-2", -- luasql library for the Lua language version 5.1
 }
 
 local lua = "lua5.1"
 
 ----- not sure how to handle these chaps ----
---~ p   liblua5.1-sql-mysql-2                     -- luasql library for the Lua language version 5.1     
---~ p   liblua5.1-sql-postgres-2                  -- luasql library for the Lua language version 5.1     
---~ p   liblua5.1-sql-sqlite3-2                   -- luasql library for the Lua language version 5.1     
 --~ p   liblua5.1-wsapi-fcgi-1                    -- Web server API fastcgi backend                      
 --~ p   liblua5.1-wsapi1                          -- Web server API abstraction layer for the Lua languag
 --~ p   liblua5.1-xmlrpc0                         -- xmlrpc library for the Lua language version 5.1     
