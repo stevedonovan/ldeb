@@ -21,8 +21,15 @@ options:
 	only pack an archive using existing dependency file
     -o filename
 	Write output to this file. Otherwise write to standard output
-    --exclude "ml lom..."
-        Do not include the named modules in output.
+    --exclude, -x  (dir or modules)
+        Do not include the named modules in output.  Multiple modules
+	can be put in quotes and separated by spaces. Alternatively,
+	can specify a directory (ending in /) from which any Lua modules
+	will be ignored.
+    --debian, -d  
+	Do not include Debian installed modules. Equivalent to -x /usr/share/lua/
+    -I package
+	Include everything in the specified Lua package
 ]]
 os.exit(1)
 end
@@ -214,7 +221,7 @@ package.binonly_module = {}
 
 local explictly_excluded_modules = {}
 local explictly_listed_modules = {}
-local manifest, explictly_excluded_path
+local manifest, explictly_excluded_path, explicit_includes
 
 local function warn_binonly(mod)
     --warn("Unable to find module |"..mod.."|; should it be in --binary or SOLUA_BINONLY?")
@@ -231,13 +238,13 @@ end
 -- $Id: compat-5.1.lua,v 1.22 2006/02/20 21:12:47 carregal Exp $
 
 
-local function findfile (name, path)
+local function findfile (name, path, find)
+    find = find or ml.exists
     name = name:gsub ("%.", LUA_DIRSEP)
     for c in path:gmatch ("[^;]+") do
 	c = c:gsub ("%?", name)
-	if ml.exists(c) then
-	    return c
-	end
+	local res = find(c)
+	if res then return res end
     end
     return nil -- not found
 end
@@ -434,7 +441,23 @@ local function SOLUA_END(n)
 --    real_os_exit(n) *SJD* we aim to keep going...
 end
 
+function files(pat)
+    local tmpfile = '/tmp/soar'
+    local cmd = 'ls -1 '..pat..' > '..tmpfile..' 2> /dev/null'
+    --print(cmd)
+    if os.execute(cmd) ~= 0 then return nil end
+    local res = {}
+    for line in io.lines(tmpfile) do
+	append(res,line)
+    end
+    return res
+end
+
 if arg then
+    --print(ml.tstring(findfile('macro.*',package.path, files)))
+    --os.exit()
+    
+
     if #arg < 1 then
 	usage()
     end
@@ -467,6 +490,17 @@ if arg then
 	elseif a == "-o" then
 	    i = i + 1
 	    outfile = arg[i]
+	elseif a == '-I' then
+	    i = i + 1
+	    if not arg[i] then usage("-I expects a package name") end
+	    local P = arg[i]..'.*'
+	    local explicit_includes = findfile(P,package.path,files)
+	    if explicit_includes == nil then usage("-I not given valid Lua package") end	    
+	    for _,file in ipairs(explicit_includes) do
+		local _,f = ml.splitpath(file)
+		local mod = arg[i]..'.'..ml.splitext(f)
+		explictly_listed_modules[mod] = file
+	    end
 	else
 	    if scriptname then break end
 	    scriptname = a
@@ -474,7 +508,8 @@ if arg then
 	end
     end
     if not outfile  then
-	outfile,ext = ml.splitext(scriptname)
+	_,outfile = ml.splitpath(scriptname)
+	outfile = ml.splitext(scriptname)
 	if outfile == scriptname and not only_analyze then
 	    usage("cannot deduce output name; same as scriptname; use -o")
 	end
@@ -484,7 +519,6 @@ if arg then
     arg = ml.sub(arg, i+1)
     arg[0] = scriptname
     arg[-1] = lua
-    --print(i); for k,v in pairs(arg) do print(k,v) end; os.exit()
     manifest = "soar.out"
     if static then
 	deps = trace_static_dependencies_of_main(scriptname)
