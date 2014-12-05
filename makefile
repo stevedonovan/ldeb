@@ -14,3 +14,4 @@ ldeb1.0.deb: ldeb soar
 
 install: all
 	./ldeb install
+	rm ~/.ldebrc
